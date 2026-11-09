@@ -221,13 +221,8 @@ class Falnic_CRM_Core {
     }
 
     public function enqueue_assets( $hook ) {
-        $pages = array(
-            'toplevel_page_falnic-crm',
-            'falnic-crm_page_falnic-crm-settings',
-            'falnic-crm_page_falnic-crm-triggers',
-            'falnic-crm_page_falnic-crm-logs',
-        );
-        if ( ! in_array( $hook, $pages, true ) ) {
+        // Only load assets on Falnic CRM admin pages (any hook containing the slug).
+        if ( false === strpos( $hook, 'falnic-crm' ) ) {
             return;
         }
 
@@ -246,7 +241,7 @@ class Falnic_CRM_Core {
         ) );
 
         // Chart.js only on dashboard.
-        if ( 'toplevel_page_falnic-crm' === $hook ) {
+        if ( false !== strpos( $hook, 'toplevel_page_falnic-crm' ) ) {
             wp_enqueue_script( 'falnic-crm-chart', 'https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js', array(), '2.9.4', true );
         }
     }
