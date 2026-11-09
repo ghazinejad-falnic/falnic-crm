@@ -56,6 +56,17 @@ class Falnic_CRM_Triggers {
             $message = __( ' عملیات با موفقیت انجام شد.', 'falnic-crm' );
         }
 
+        // Handle add/edit trigger form actions.
+        $action = sanitize_text_field( $_GET['action'] ?? '' );
+        if ( $action === 'add' ) {
+            $this->render_form( 0 );
+            return;
+        }
+        if ( $action === 'edit' && ! empty( $_GET['id'] ) ) {
+            $this->render_form( intval( $_GET['id'] ) );
+            return;
+        }
+
         // List triggers with optional search/pagination.
         $search   = sanitize_text_field( $_GET['s'] ?? '' );
         $paged    = max( 1, intval( $_GET['paged'] ?? 1 ) );
@@ -274,9 +285,10 @@ class Falnic_CRM_Triggers {
         }
 
         global $wpdb;
-        $record = $wpdb->get_row( $wpdb->prepare(
+        // $table and $pk are already whitelist-validated above.
+        $record = $wpdb->get_row(
             "SELECT * FROM `{$table}` ORDER BY `{$pk}` DESC LIMIT 1"
-        ) );
+        );
         if ( ! $record ) {
             return array( 'success' => true, 'payload' => array(), 'message' => __( 'رکوردی برای پیش‌نمایش یافت نشد.', 'falnic-crm' ) );
         }

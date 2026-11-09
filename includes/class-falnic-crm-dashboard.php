@@ -41,13 +41,14 @@ class Falnic_CRM_Dashboard {
 
         // Events over time (last 30 days).
         $trend = array();
-        $days  = $wpdb->get_results( $wpdb->prepare(
+        $days  = $wpdb->get_results(
             "SELECT DATE(created_at) AS day, COUNT(*) AS cnt
              FROM {$this->core->table_events}
              WHERE created_at >= DATE_SUB(NOW(), INTERVAL 29 DAY)
              GROUP BY DATE(created_at)
-             ORDER BY day ASC"
-        ), ARRAY_A );
+             ORDER BY day ASC",
+            ARRAY_A
+        );
         $fill  = array_fill( 0, 29, 0 );
         $today = (int) gmdate( 'z' );
         foreach ( $days as $row ) {
@@ -64,7 +65,7 @@ class Falnic_CRM_Dashboard {
         $failed  = $counts['failed'];
 
         // Per-trigger stats.
-        $per_trigger = $wpdb->get_results( $wpdb->prepare(
+        $per_trigger = $wpdb->get_results(
             "SELECT t.id, t.title, t.status,
                     SUM(CASE WHEN e.status = 'processed' THEN 1 ELSE 0 END) AS success,
                     SUM(CASE WHEN e.status = 'failed' THEN 1 ELSE 0 END) AS failed,
@@ -73,18 +74,20 @@ class Falnic_CRM_Dashboard {
              LEFT JOIN {$this->core->table_events} e ON e.trigger_id = t.id
              GROUP BY t.id
              ORDER BY t.id DESC
-             LIMIT 10"
-        ), ARRAY_A );
+             LIMIT 10",
+            ARRAY_A
+        );
 
         // Recent errors.
-        $recent_errors = $wpdb->get_results( $wpdb->prepare(
+        $recent_errors = $wpdb->get_results(
             "SELECT e.*, t.title AS trigger_title
              FROM {$this->core->table_events} e
              LEFT JOIN {$this->core->table_triggers} t ON t.id = e.trigger_id
              WHERE e.status = 'failed'
              ORDER BY e.created_at DESC
-             LIMIT 10"
-        ), ARRAY_A );
+             LIMIT 10",
+            ARRAY_A
+        );
 
         return array(
             'triggers'     => array( 'total' => $triggers_total, 'active' => $triggers_active, 'inactive' => $triggers_inactive ),
