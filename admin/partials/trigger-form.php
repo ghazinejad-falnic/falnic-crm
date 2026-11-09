@@ -133,7 +133,7 @@ jQuery(function($){
 
     $('#falnic-crm-refresh-tables').on('click', loadTables);
 
-    $tableSelect.on('change', function(){
+        $tableSelect.on('change', function(){
         var table = $(this).val();
         $columnsList.empty();
         $pkInput.val('id');
@@ -151,6 +151,10 @@ jQuery(function($){
                         .attr('title', col.name);
                     $columnsList.append($item);
                 });
+                // Refresh column dropdowns in all existing dynamic param rows
+                $paramsList.find('.falcin-crm-param-row .dynamic-value, .falnic-crm-param-row .dynamic-value').each(function(){
+                    fillDynamicDropdown($(this));
+                });
                 var firstId = '';
                 $.each(r.data, function(i, col){
                     if (col.name.toLowerCase() === 'id'){ firstId = col.name; return false; }
@@ -160,6 +164,14 @@ jQuery(function($){
         });
     });
 
+    // Helper: populate column dropdown for a dynamic select
+    function fillDynamicDropdown($dropdown){
+        $dropdown.html('<option>'+'<?php esc_js(__("انتخاب ستون...")) ?>'+'</option>');
+        $columnsList.find('.falnic-crm-column').each(function(){
+            $dropdown.append('<option value="'+$(this).data('column')+'">'+$(this).data('column')+'</option>');
+        });
+    }
+
     function addParamRow(name, type, value, column, defaultVal){
         var $row = $('#falnic-crm-template .falnic-crm-param-row').clone().show();
         $row.find('.param-name').val(name);
@@ -168,10 +180,7 @@ jQuery(function($){
         var $dynamic = $row.find('.dynamic-value');
         if (type === 'dynamic') {
             $static.hide(); $dynamic.show();
-            $dynamic.html('<option>'+'<?php esc_js(__("انتخاب ستون...")) ?>'+'</option>');
-            $columnsList.find('.falnic-crm-column').each(function(){
-                $dynamic.append('<option value="'+$(this).data('column')+'">'+$(this).data('column')+'</option>');
-            });
+            fillDynamicDropdown($dynamic);
             $dynamic.val(column);
         } else {
             $static.show(); $dynamic.hide();
@@ -180,8 +189,17 @@ jQuery(function($){
         $row.find('.param-default').val(defaultVal);
         $row.find('.param-remove').on('click', function(){ $row.remove(); });
         $row.find('.param-type').on('change', function(){
-            if ($(this).val() === 'dynamic'){ $static.hide(); $dynamic.show(); }
-            else { $static.show(); $dynamic.hide(); }
+            if ($(this).val() === 'dynamic'){
+                $static.hide(); $dynamic.show();
+                fillDynamicDropdown($dynamic);
+                // Auto-select first column if none selected
+                if ( !$dynamic.val() ){
+                    var firstCol = $columnsList.find('.falnic-crm-column').first().data('column');
+                    if ( firstCol ){ $dynamic.val( firstCol ); }
+                }
+            } else {
+                $static.show(); $dynamic.hide();
+            }
         });
         $row.on('dragover', function(e){ e.preventDefault(); $(this).css('background','#e8f4ff'); });
         $row.on('dragleave', function(){ $(this).css('background',''); });
@@ -218,17 +236,29 @@ jQuery(function($){
         var table = $tableSelect.val();
         var pk    = $pkInput.val();
         var mapping = {};
+        var hasError = false;
         $paramsList.find('.falnic-crm-param-row').each(function(){
             var $row = $(this);
             var pname = $.trim($row.find('.param-name').val());
             if (pname === '') return;
+            var ptype = $row.find('.param-type').val();
+            var pcolumn = $row.find('.dynamic-value').val();
+            if (ptype === 'dynamic' && !pcolumn){
+                hasError = true;
+                $row.find('.dynamic-value').focus();
+                return false;
+            }
             mapping[pname] = {
-                type: $row.find('.param-type').val(),
+                type: ptype,
                 value: $row.find('.static-value').val(),
-                column: $row.find('.dynamic-value').val(),
+                column: pcolumn,
                 default: $row.find('.param-default').val()
             };
         });
+        if (hasError){
+            $('#falnic-crm-preview').html('<span style="color:red">'+'<?php esc_js(__("لطفاً برای پارامترهای پویا، یک ستون انتخاب کنید.")) ?>'+'</span>');
+            return;
+        }
         $.post(falnicCrm.ajax_url, {
             action: 'falnic_crm_preview_payload',
             _wpnonce: falnicCrm.nonce,
@@ -245,17 +275,30 @@ jQuery(function($){
         var $btn = $(this).find('input[type=submit]');
         $btn.prop('disabled', true).text('<?php esc_js(__("ذخیره کردن...")) ?>');
         var mapping = {};
+        var hasError = false;
         $paramsList.find('.falnic-crm-param-row').each(function(){
             var $row = $(this);
             var pname = $.trim($row.find('.param-name').val());
             if (pname === '') return;
+            var ptype = $row.find('.param-type').val();
+            var pcolumn = $row.find('.dynamic-value').val();
+            if (ptype === 'dynamic' && !pcolumn){
+                hasError = true;
+                $row.find('.dynamic-value').focus();
+                return false;
+            }
             mapping[pname] = {
-                type: $row.find('.param-type').val(),
+                type: ptype,
                 value: $row.find('.static-value').val(),
-                column: $row.find('.dynamic-value').val(),
+                column: pcolumn,
                 default: $row.find('.param-default').val()
             };
         });
+        if (hasError){
+            $btn.prop('disabled', false).text('<?php esc_js(__("ذخیره تریجر")) ?>');
+            alert('<?php esc_js(__("لطفاً برای تمام پارامترهای پویا، یک ستون از جدول منبع انتخاب کنید.")) ?>');
+            return;
+        }
         $('#falnic-crm-mapping-json').val(JSON.stringify(mapping));
         $.post(falnicCrm.ajax_url, {
             action: 'falnic_crm_save_trigger',
