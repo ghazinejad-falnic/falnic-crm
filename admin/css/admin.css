@@ -1,0 +1,52 @@
+/* Falnic CRM Admin Styles */
+.wrap .falnic-crm-stats .stat-card {
+    box-sizing: border-box;
+}
+.status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+}
+.status-active {
+    background: #46b450;
+}
+.status-inactive {
+    background: #a0a5aa;
+}
+.falnic-crm-column {
+    padding: 4px 8px;
+    border: 1px dashed #bbb;
+    border-radius: 4px;
+    cursor: grab;
+    font-size: 12px;
+    user-select: none;
+}
+.falnic-crm-column:active {
+    cursor: grabbing;
+}
+.falnic-crm-param-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 6px 8px;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    background: #fafafa;
+}
+.falnic-crm-param-row .param-name {
+    flex: 1;
+}
+.falcin-crm-param-row,
+#falcin-crm-template {
+    /* legacy aliases kept for safety */
+}
+.form-table .description {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #757575;
+}
+.stat-card .stat-label { font-size: 12px; color: #757575; }
+.stat-card .stat-number { font-size: 20px; font-weight: 700; margin-top: 4px; }
