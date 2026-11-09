@@ -24,11 +24,12 @@ class Falnic_CRM_Database {
      */
     public function get_tables( $search = '' ) {
         global $wpdb;
-        $sql = "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'";
+        $sql = "SELECT TABLE_NAME FROM information_schema.TABLES
+                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE'";
         if ( $search !== '' ) {
-            $sql .= $wpdb->prepare( " AND `Tables_in_%s` LIKE %s", $wpdb->dbname, '%' . $wpdb->esc_like( $search ) . '%' );
+            $sql .= $wpdb->prepare( " AND TABLE_NAME LIKE %s", '%' . $wpdb->esc_like( $search ) . '%' );
         }
-        $sql .= " ORDER BY `Tables_in_{$wpdb->dbname}` ASC LIMIT 200";
+        $sql .= " ORDER BY TABLE_NAME ASC LIMIT 200";
         $rows = $wpdb->get_col( $sql );
         $out  = array();
         foreach ( $rows as $table ) {
