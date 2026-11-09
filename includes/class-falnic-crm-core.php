@@ -221,8 +221,11 @@ class Falnic_CRM_Core {
     }
 
     public function enqueue_assets( $hook ) {
-        // Only load assets on Falnic CRM admin pages (any hook containing the slug).
-        if ( false === strpos( $hook, 'falnic-crm' ) ) {
+        // Only load assets on Falnic CRM admin pages.
+        // Check both $hook and $_GET['page'] because query-string actions
+        // (e.g. ?action=add) can change the $hook suffix in some WP versions.
+        $page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
+        if ( false === strpos( $hook, 'falnic-crm' ) && false === strpos( $page, 'falnic-crm' ) ) {
             return;
         }
 
